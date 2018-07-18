@@ -7,7 +7,6 @@ This container runs a MongoDB database with CRON schedule backup
 docker build . --tag mongo-s3-backup:3.4.10
 ```
 
-
 ## Running in Docker Dev Machine 
 ```
 docker run -d --name m1 -p 27017:27017 -h mongodb-0 `
@@ -30,15 +29,15 @@ docker run -d --name m1 -p 27017:27017 -h mongodb-0 `
 
 ### Get list of backup database on S3
 ```
-aws s3 ls $S3_BUCKET
+aws s3 ls s3://$S3_BUCKET/
 ```
 
 ### Download backup 
 ```
-aws s3 cp $S3_BUCKET\<filename> restore.archive
+aws s3 cp s3://$S3_BUCKET/mongo-backup_20180717.archive restore.archive
 ```
 
 ### Restore backup  
 ```
-mongorestore --archive restore.archive --gzip
+mongorestore --uri "mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@mongodb-0:27017" --archive restore.archive --gzip
 ```
