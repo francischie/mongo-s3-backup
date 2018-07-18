@@ -1,0 +1,88 @@
+# Headless Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: mongodb
+  name: mongodb
+spec:
+  clusterIP: None
+  ports:
+  - port: 27017
+    protocol: TCP
+    targetPort: 27017
+  selector:
+    app: mongodb
+  sessionAffinity: None
+  type: ClusterIP
+# StatefulSet
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  labels:
+    app: mongodb
+  name: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  serviceName: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - args:
+        - mongod
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: <value>
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: <value>
+        - name: MONGODB_CONNECTION_URI
+          value: mongodb://<username>:<password>@mongodb-0:27017
+        - name: AWS_ACCESS_KEY_ID
+          value: <value>
+        - name: AWS_SECRET_ACCESS_KEY
+          value: <value>
+        - name: S3_BUCKET
+          value: <value>
+        - name: BACKUP_FILENAME_PREFIX
+          value: mongodb_backup
+        - name: BACKUP_FILENAME_DATE_FORMAT
+          value: '%Y%m%d'
+        - name: CRON_SCHEDULE
+          value: 0 1 * * *
+        image: mongo:3.4.10
+        imagePullPolicy: Always
+        name: mongodb
+        ports:
+        - containerPort: 27017
+          protocol: TCP
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - bash
+                - -c 
+                - >                 
+                  printenv | grep -v "no_proxy" >> /etc/environment; 
+                  echo "${CRON_SCHEDULE} root /script/backup.sh > /var/log/mongo/backup.log 2>&1" > /etc/cron.d/mongobackup_cron;
+                  cron;
+        volumeMounts:
+        - mountPath: /data/db
+          name: data
+  volumeClaimTemplates:
+  - metadata:
+      annotations:
+        volume.beta.kubernetes.io/storage-class: default
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
