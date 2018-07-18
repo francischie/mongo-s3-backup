@@ -34,10 +34,10 @@ aws s3 ls s3://$S3_BUCKET/
 
 ### Download backup 
 ```
-aws s3 cp s3://$S3_BUCKET/mongo-backup_20180717.archive restore.archive
+aws s3 cp s3://$S3_BUCKET/mongodb_backup-20180718.archive restore.archive
 ```
 
 ### Restore backup  
 ```
-mongorestore --uri "mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@mongodb-0:27017" --archive restore.archive --gzip
+mongorestore --uri MONGODB_CONNECTION_URI --gzip --archive=restore.archive
 ```
