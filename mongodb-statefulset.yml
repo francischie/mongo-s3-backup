@@ -70,7 +70,8 @@ spec:
                 - -c 
                 - >                 
                   printenv | grep -v "no_proxy" >> /etc/environment; 
-                  echo "${CRON_SCHEDULE} root /script/backup.sh > /var/log/mongo/backup.log 2>&1" > /etc/cron.d/mongobackup_cron;
+                  touch /var/log/mongodb/backup.log
+                  echo "${CRON_SCHEDULE} root /script/backup.sh > /var/log/mongodb/backup.log 2>&1" > /etc/cron.d/mongobackup_cron;
                   cron;
         volumeMounts:
         - mountPath: /data/db
