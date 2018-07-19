@@ -17,7 +17,7 @@ kubectl apply -f mongodb-statefulset.yml
 - This will create MongoDB statefulset with headless service. It will also add CRON entry to backup the database based on the CRON_SCHEDULE. 
 - The yaml script also have postStart lifecycle to trigger the creation of CRON schedule value.
 
-## Docker (no cron backup)
+## Docker 
 
 
 ### Powershell
@@ -41,6 +41,21 @@ docker run -d --name m1 -p 27017:27017 -h mongodb-0 `
 docker exec -it m1 bash
 ```
 
+### Enabling CRON backup on Docker
+```
+touch /var/log/mongodb/backup.log; 
+echo "${CRON_SCHEDULE} root /script/backup.sh > /var/log/mongodb/backup.log 2>&1" > /etc/cron.d/mongobackup_cron;
+service cron start;
+```
+
+
+## Kubernetes/Docker
+
+### Bash to mongo container
+
+```
+docker exec -it m1 bash
+```
 
 ### Manually trigger backup and upload to S3
 ```
@@ -59,6 +74,5 @@ aws s3 cp s3://$S3_BUCKET/mongodb_backup-20180718.archive restore.archive
 
 ### Restore backup  
 ```
-mongorestore --uri $MONGODB_CONNECTION_URI --gzip --archive=restore.archive
-rm restore.archive
+/script/restore.sh
 ```
